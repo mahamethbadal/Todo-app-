@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #e8f0fe;
+            /* light blue background */
+            color: #1a1a1a;
+        }
+
+        .app {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: linear-gradient(180deg, #4a90e2, #357abd);
+            color: white;
+            padding: 30px 20px;
+            width: 240px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar h2 {
+            font-size: 1.8rem;
+            margin-bottom: 30px;
+            letter-spacing: 1px;
+        }
+
+        .sidebar button {
+            display: block;
+            width: 100%;
+            margin-bottom: 15px;
+            padding: 12px;
+            border: none;
+            background: rgba(255, 255, 255, 0.9);
+            color: #357abd;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: 0.2s;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar button:hover {
+            background: white;
+            transform: translateY(-2px);
+        }
+
+        /* Main Content */
+        .main {
+            flex: 1;
+            padding: 40px;
+        }
+
+        .main h1 {
+            margin-bottom: 30px;
+            font-size: 2rem;
+            color: #1a1a1a;
+        }
+
+        form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 30px;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        form input,
+        form select,
+        form button {
+            padding: 12px 15px;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            font-size: 0.95rem;
+            flex: 1 1 150px;
+        }
+
+        form button {
+            flex: 1 1 100px;
+            background: linear-gradient(90deg, #4a90e2, #357abd);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+
+        form button:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        /* Tasks */
+        .task {
+            background: white;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            transition: 0.2s;
+        }
+
+        .task:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .task.completed {
+            border-left: 6px solid #2ecc71;
+        }
+
+        /* green for completed */
+        .task.in-progress {
+            border-left: 6px solid #3498db;
+        }
+
+        /* blue for in-progress */
+        .task.not-started {
+            border-left: 6px solid #e74c3c;
+        }
+
+        /* red for not started */
+
+        .task h3 {
+            margin-bottom: 5px;
+            font-size: 1.1rem;
+        }
+
+        .task p {
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        .task button {
+            background: #357abd;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .task button:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .app {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                flex-direction: row;
+                overflow-x: auto;
+            }
+
+            .sidebar button {
+                flex: 0 0 auto;
+                margin-right: 10px;
+            }
+
+            form {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <h2>Tasks</h2>
+            <button id="allTasksBtn">All Tasks</button>
+            <button id="completedBtn">Completed</button>
+            <button id="inProgressBtn">In Progress</button>
+            <button id="notStartedBtn">Not Started</button>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main">
+            <h1>My Todo App</h1>
+            <form id="taskForm">
+                <input type="text" id="title" placeholder="Task Title" required>
+                <input type="text" id="description" placeholder="Task Description">
+                <select id="priority">
+                    <option value="Low">Low</option>
+                    <option value="Moderate">Moderate</option>
+                    <option value="High">High</option>
+                </select>
+                <select id="status">
+                    <option value="Not Started">Not Started</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Completed">Completed</option>
+                </select>
+                <button type="submit">Add Task</button>
+            </form>
+
+            <div id="tasksContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        let tasks = [];
+
+        const taskForm = document.getElementById('taskForm');
+        const tasksContainer = document.getElementById('tasksContainer');
+
+        taskForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const title = document.getElementById('title').value;
+            const description = document.getElementById('description').value;
+            const priority = document.getElementById('priority').value;
+            const status = document.getElementById('status').value;
+
+            const task = { title, description, priority, status };
+            tasks.push(task);
+            renderTasks(tasks);
+            taskForm.reset();
+        });
+
+        function renderTasks(tasksToRender) {
+            tasksContainer.innerHTML = '';
+            tasksToRender.forEach((task, index) => {
+                const taskDiv = document.createElement('div');
+                taskDiv.classList.add('task');
+                taskDiv.classList.add(task.status.toLowerCase().replace(' ', '-'));
+                taskDiv.innerHTML = `
+                    <div>
+                        <h3>${task.title} (${task.priority})</h3>
+                        <p>${task.description}</p>
+                        <p>Status: ${task.status}</p>
+                    </div>
+                    <div>
+                        <button onclick="deleteTask(${index})">Delete</button>
+                    </div>
+                `;
+                tasksContainer.appendChild(taskDiv);
+            });
+        }
+
+        function deleteTask(index) {
+            tasks.splice(index, 1);
+            renderTasks(tasks);
+        }
+
+        // Filter buttons
+        document.getElementById('allTasksBtn').addEventListener('click', () => renderTasks(tasks));
+        document.getElementById('completedBtn').addEventListener('click', () => renderTasks(tasks.filter(t => t.status === 'Completed')));
+        document.getElementById('inProgressBtn').addEventListener('click', () => renderTasks(tasks.filter(t => t.status === 'In Progress')));
+        document.getElementById('notStartedBtn').addEventListener('click', () => renderTasks(tasks.filter(t => t.status === 'Not Started')));
+    </script>
+</body>
+
+</html>
